@@ -40,6 +40,7 @@ public class NewBehaviourScript : MonoBehaviour
             Debug.Log("h=" + h);
             _Animator.SetBool("Run", true);
             _Player.transform.position += new Vector3(h, 0, 0) * 0.1f;
+            _Player.transform.localEulerAngles = new Vector3(0, h < 0 ? 180 : 0, 0); 
             Debug.Log(new Vector3(h, 0, 0) * 10); 
         }
         else
