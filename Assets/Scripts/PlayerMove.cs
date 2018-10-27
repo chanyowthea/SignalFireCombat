@@ -10,16 +10,19 @@ public class PlayerMove : MonoBehaviour
     CharacterController _Controller; 
     [SerializeField] int _PlayerIndex; 
     [SerializeField] Text _PlayerName;
+    
+    [SerializeField] Transform _Player;
+    [SerializeField] Animator _Animator;
+
+    int _HitCount;
 
     private void Start()
     {
         _Controller = GetComponent<CharacterController>(); 
         var temp = transform.position;
-        Debug.Log("temp=" + temp); 
         temp.y = MapManager.Instance.GetPosY(temp, _Controller.height);
         transform.position = temp; 
         _PlayerName.text = "Player " + _PlayerIndex;
-        Debug.Log("transform.position=" + transform.position);
     }
 
     void Update()
@@ -28,41 +31,54 @@ public class PlayerMove : MonoBehaviour
         float v = Input.GetAxis("Vertical" + (_PlayerIndex != 0 ? _PlayerIndex.ToString() : ""));
         if ((v != 0 || h != 0))
         {
-            //if (h != 0)
-            //{
-            //    var pos = new Vector3(h, 0, 0) * _MoveSpeed;
-            //    Vector3 dir = Vector3.zero;
-            //    dir.x = h > 0 ? 1 : -1;
-            //    Ray ray = new Ray(transform.position, dir);
-            //    RaycastHit hit;
-            //    if (!Physics.Raycast(ray, out hit, _Controller.size.z / 2f + MapManager.Instance._MinGap, LayerMask.GetMask("Wall")))
-            //    {
-            //        _Controller.Move(pos);
-            //        var temp = transform.position;
-            //        temp.y = MapManager.Instance.GetPosY(temp, _Controller.height);
-            //        transform.position = temp;
-            //    }
-            //}
-            //if (v != 0)
-            //{
-            //    var pos = new Vector3(0, v, v * MapManager.Instance._DepthFactor) * _MoveSpeed;
-            //    Vector3 dir = Vector3.zero;
-            //    dir.z = v > 0 ? 1 : -1;
-            //    Ray ray = new Ray(transform.position, dir);
-            //    RaycastHit hit;
-            //    if (!Physics.Raycast(ray, out hit, _Collider.size.z / 2f + MapManager.Instance._MinGap, LayerMask.GetMask("Wall")))
-            //    {
-            //        var temp = transform.position + pos;
-            //        temp.y = MapManager.Instance.GetPosY(temp, _Collider.size.y);
-            //        _Controller.MovePosition(temp);
-            //    }
-            //}
-
             var pos = new Vector3(h, v, v * MapManager.Instance._DepthFactor) * _MoveSpeed;
             _Controller.Move(pos); 
             var temp = transform.position;
             temp.y = MapManager.Instance.GetPosY(temp, _Controller.height);
             transform.position = temp;
+            _Animator.SetBool("Run", true);
+            _Player.transform.localEulerAngles = new Vector3(0, h < 0 ? 180 : 0, 0);
+        }
+        else
+        {
+            _Animator.SetBool("Run", false);
+        }
+
+        var state = _Animator.GetCurrentAnimatorStateInfo(0);
+        if (_HitCount != 0 && state.normalizedTime > 1)
+        {
+            _Animator.SetInteger("AttackState", 0);
+            _HitCount = 0;
+        }
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            Attack();
+        }
+        if (Input.GetKey(KeyCode.Space))
+        {
+            _Animator.CrossFade("Jump", 0);
+        }
+    }
+
+    void Attack()
+    {
+        var state = _Animator.GetCurrentAnimatorStateInfo(0);
+        //Debug.Log("Attack" + state.normalizedTime);
+        if (_HitCount == 0 && state.normalizedTime > 0.5f)
+        {
+            _Animator.SetInteger("AttackState", 1);
+            _HitCount = 1;
+        }
+        else if (_HitCount == 1 && state.normalizedTime > 0.5f)
+        {
+            _Animator.SetInteger("AttackState", 2);
+            _HitCount = 2;
+        }
+        else if (_HitCount == 2 && state.normalizedTime > 0.5f)
+        {
+            Debug.Log("Attack" + state.normalizedTime + ", " + _HitCount);
+            _Animator.SetInteger("AttackState", 3);
+            _HitCount = 3;
         }
     }
 }
