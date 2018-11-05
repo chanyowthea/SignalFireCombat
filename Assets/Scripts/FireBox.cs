@@ -6,17 +6,23 @@ public class FireBox : MonoBehaviour
 {
     float _HurtGapTime = 0.2f;
     float _CurHurtTime;
+    float _StayTime;
+    float _DeferTime;
 
-    public void SetData(Vector3 pos, Vector3 scale)
+    public void SetData(Vector3 pos, Vector3 scale, float stayTime, float deferTime = 0)
     {
-        transform.position = pos;
+        transform.localPosition = pos;
         transform.localScale = scale;
+        transform.localEulerAngles = Vector3.zero;
+        _DeferTime = deferTime;
+        _StayTime = stayTime; 
         StartCoroutine(DestroyRoutine());
     }
 
     IEnumerator DestroyRoutine()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(_DeferTime); 
+        yield return new WaitForSeconds(_StayTime);
         GameObject.Destroy(this.gameObject);
     }
 
@@ -26,7 +32,6 @@ public class FireBox : MonoBehaviour
         {
             if (Time.time - _CurHurtTime > _HurtGapTime)
             {
-                Debug.LogError("Player Hit"); 
                 _CurHurtTime = Time.time; 
                 var player = other.GetComponent<Player>();
                 if (player != null)

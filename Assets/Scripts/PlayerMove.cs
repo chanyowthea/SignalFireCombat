@@ -20,12 +20,13 @@ public class PlayerMove : MonoBehaviour
     int _HitCount;
     int _MoveState;
     //float _PhysicalValue = 100; 
-    float _LastWalkTime; 
+    bool _IsLastMoveLeft; 
+    float _LastWalkTime;
 
     public void SetData(int playerIndex)
-        {
-        _PlayerIndex = playerIndex; 
-        }
+    {
+        _PlayerIndex = playerIndex;
+    }
 
     private void Start()
     {
@@ -42,11 +43,15 @@ public class PlayerMove : MonoBehaviour
             return;
         }
 
+        //var currentState = _Animator.GetCurrentAnimatorStateInfo(0);
+        //if (_Animator.GetInteger("AttackState") == 0)
+            {
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D))
         {
+            var moveLeft = Input.GetKeyDown(KeyCode.A); 
             if (_MoveState == 0)
             {
-                if (Time.time - _LastWalkTime < 0.5f)
+                if (Time.time - _LastWalkTime < 0.5f && moveLeft == _IsLastMoveLeft)
                 {
                     _MoveState = 2;
                 }
@@ -58,6 +63,7 @@ public class PlayerMove : MonoBehaviour
             if (_MoveState == 1)
             {
                 _LastWalkTime = Time.time;
+                _IsLastMoveLeft = Input.GetKeyDown(KeyCode.A);
             }
         }
 
@@ -96,12 +102,15 @@ public class PlayerMove : MonoBehaviour
             _Animator.SetBool("Walk", false);
             _Animator.SetBool("Run", false);
         }
+        }
 
         var state = _Animator.GetCurrentAnimatorStateInfo(0);
-        if (_HitCount != 0 && state.normalizedTime > 1)
+        // ((state.normalizedTime >= 1 && (state.IsName("Attack1") || state.IsName("Attack2") || state.IsName("Attack3")))
+        //|| (!state.IsName("Attack1") && !state.IsName("Attack2") && !state.IsName("Attack3")))
+        if (_HitCount != 0 && state.normalizedTime >= 1)
         {
             _Animator.SetInteger("AttackState", 0);
-            _HitCount = 0;
+            _HitCount = 0; 
         }
         if (Input.GetKeyDown(KeyCode.J))
         {
@@ -163,20 +172,28 @@ public class PlayerMove : MonoBehaviour
         {
             _Animator.SetInteger("AttackState", 1);
             _HitCount = 1;
-            var box = GameObject.Instantiate(_FireBox); 
-            box.gameObject.SetActive(true); 
-            box.SetData(this.transform.position + new Vector3(47, 0, 0), new Vector3(74, 53, 30)); 
+            CreateBox(); 
         }
         else if (_HitCount == 1 && state.normalizedTime > 0.5f)
         {
             _Animator.SetInteger("AttackState", 2);
             _HitCount = 2;
+            CreateBox();
         }
         else if (_HitCount == 2 && state.normalizedTime > 0.5f)
         {
-            Debug.Log("Attack" + state.normalizedTime + ", " + _HitCount);
             _Animator.SetInteger("AttackState", 3);
             _HitCount = 3;
+            CreateBox();
         }
+    }
+
+    void CreateBox()
+    {
+        var box = GameObject.Instantiate(_FireBox);
+        box.gameObject.SetActive(true);
+        box.transform.SetParent(this._Player.transform); 
+        box.transform.localScale = Vector3.one; 
+        box.SetData(new Vector3(47, 0, 0), new Vector3(74, 53, 30), 0.3f, 0.2f);
     }
 }

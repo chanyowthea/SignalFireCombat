@@ -24,7 +24,7 @@ public class MapManager : MonoBehaviour
     public static MapManager Instance;
 
     public readonly float _MinGap = 1f;
-    public readonly float _DepthFactor = 1;
+    public readonly float _DepthFactor = 2;
     public readonly float _PlayerDefaultBodyDepth = 20;
     bool _HasInited;
 
@@ -90,7 +90,7 @@ public class MapManager : MonoBehaviour
 
     public float GetPosY(Vector3 pos, float playerHeight)
     {
-        float ratio = pos.z / _RoadHeight * _DepthFactor;
+        float ratio = pos.z / (_RoadHeight * _DepthFactor);
         return ratio * _RoadHeight + _BottomPosY + _RoadHeight / 2f + playerHeight / 2f;
     }
 
